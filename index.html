@@ -381,7 +381,7 @@
       return name.substring(0, dotIndex);
     }
 
-    // --- FUNCIÓN AJUSTADA ---
+    // FUNCIÓN QUE ARMA EL BANNER (ajustada para que la foto llene todo el ancho)
     async function createBannerFromImage(img, text) {
       const width = 1200;
       const height = 900;
@@ -396,19 +396,19 @@
       canvas.height = height;
       const ctx = canvas.getContext("2d");
 
-      // Fondo general
+      // Fondo
       ctx.fillStyle = "#111114";
       ctx.fillRect(0, 0, width, height);
 
-      // Header negro
+      // Header
       ctx.fillStyle = black;
       ctx.fillRect(0, 0, width, headerHeight);
 
-      // Línea magenta debajo del header (fina)
+      // Línea magenta bajo header
       ctx.fillStyle = magenta;
       ctx.fillRect(0, headerHeight - magentaLine, width, magentaLine);
 
-      // Texto "Jesús DIAZ" centrado
+      // Texto JESÚS DIAZ centrado
       ctx.fillStyle = "#ffffff";
       ctx.textBaseline = "alphabetic";
       ctx.textAlign = "left";
@@ -420,12 +420,12 @@
       const yLine1 = 95;
       ctx.fillText(line1, xLine1, yLine1);
 
-      // Subrayado magenta centrado bajo "Jesús DIAZ"
+      // Subrayado magenta
       const underlineWidth = line1Width;
       ctx.fillStyle = magenta;
       ctx.fillRect(xLine1, yLine1 + 18, underlineWidth, 5);
 
-      // Texto "AUTOMOTORES" centrado
+      // Texto AUTOMOTORES centrado
       ctx.fillStyle = "#ffffff";
       ctx.font = "500 32px 'Segoe UI', system-ui, sans-serif";
       const line2 = "AUTOMOTORES";
@@ -434,16 +434,16 @@
       const yLine2 = yLine1 + 70;
       ctx.fillText(line2, xLine2, yLine2);
 
-      // Footer negro
+      // Footer
       const footerY = height - footerHeight;
       ctx.fillStyle = black;
       ctx.fillRect(0, footerY, width, footerHeight);
 
-      // Línea magenta fina encima del footer
+      // Línea magenta encima del footer
       ctx.fillStyle = magenta;
       ctx.fillRect(0, footerY, width, magentaLine);
 
-      // Área de la foto: 100% entre las líneas magenta
+      // Área de la foto: entre header y footer, usando TODO el ancho
       const contentTop = headerHeight;
       const contentBottom = footerY;
       const contentHeight = contentBottom - contentTop;
@@ -451,22 +451,11 @@
       const contentX = 0;
       const contentY = contentTop;
 
-      // Escalar foto manteniendo proporción, ocupando TODO el ancho/alto posible
+      // La imagen siempre llena TODO el ancho, recorta arriba/abajo si hace falta
       const imgRatio = img.width / img.height;
-      const areaRatio = contentWidth / contentHeight;
-      let drawWidth, drawHeight;
-
-      if (imgRatio > areaRatio) {
-        // Imagen más "apaisada": llena ancho, recorta arriba/abajo
-        drawWidth = contentWidth;
-        drawHeight = contentWidth / imgRatio;
-      } else {
-        // Imagen más alta: llena alto, recorta laterales
-        drawHeight = contentHeight;
-        drawWidth = contentHeight * imgRatio;
-      }
-
-      const drawX = contentX + (contentWidth - drawWidth) / 2;
+      const drawWidth = contentWidth;
+      const drawHeight = contentWidth / imgRatio;
+      const drawX = contentX;
       const drawY = contentY + (contentHeight - drawHeight) / 2;
 
       ctx.save();
@@ -481,7 +470,6 @@
       footerText = footerText.trim();
       if (!footerText) footerText = "VEHÍCULO";
 
-      // Ajustar tamaño de fuente según ancho
       let fontSize = 42;
       ctx.textBaseline = "middle";
       ctx.fillStyle = "#ffffff";
@@ -498,7 +486,6 @@
       ctx.textAlign = "center";
       ctx.fillText(footerText, textX, textY);
 
-      // Devolver blob JPEG
       const blob = await new Promise((resolve) =>
         canvas.toBlob(resolve, "image/jpeg", 0.9)
       );
@@ -506,7 +493,6 @@
 
       return { blob, dataURL };
     }
-    // --- FIN FUNCIÓN AJUSTADA ---
 
     async function generateBanners() {
       const files = Array.from(imagesInput.files || []);
@@ -540,7 +526,6 @@
 
           zip.file(outputName, blob);
 
-          // Preview
           const item = document.createElement("div");
           item.className = "preview-item";
           const imgPreview = document.createElement("img");
