@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generador de Banners - Jesús Díaz Automotores</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- JSZip para crear el ZIP -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0b0b0f;
+      color: #f5f5f5;
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    h1 span {
+      color: #ff008c;
+    }
+
+    .card {
+      background: #15151c;
+      border-radius: 16px;
+      padding: 16px 20px 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px 16px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      gap: 4px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #333646;
+      background: #101019;
+      color: #f5f5f5;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      border-color: #ff008c;
+      box-shadow: 0 0 0 1px rgba(255, 0, 140, 0.4);
+      background: #0d0d16;
+    }
+
+    .file-input-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    input[type="file"] {
+      font-size: 0.9rem;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: #bbbbbb;
+      opacity: 0.8;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff008c, #ff5c00);
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px rgba(255, 0, 140, 0.4);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .btn-primary:not(:disabled):hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 14px 30px rgba(255, 0, 140, 0.5);
+    }
+
+    .btn-secondary {
+      border-radius: 999px;
+      border: 1px solid #3a3a4b;
+      background: #101019;
+      color: #e5e5f5;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #181824;
+      border-color: #555770;
+    }
+
+    .status {
+      font-size: 0.82rem;
+      color: #cccccc;
+    }
+
+    .status strong {
+      color: #ff7cc2;
+    }
+
+    .previews {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .preview-item {
+      background: #101019;
+      border-radius: 12px;
+      padding: 8px;
+      border: 1px solid #26263a;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow: hidden;
+    }
+
+    .preview-item img {
+      width: 100%;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .preview-name {
+      font-size: 0.8rem;
+      word-break: break-all;
+      color: #d8d8e6;
+    }
+
+    .footer-note {
+      font-size: 0.78rem;
+      color: #8b8ba0;
+      margin-top: 12px;
+      text-align: center;
+      opacity: 0.85;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 0, 140, 0.12);
+      color: #ffc4e6;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #ff008c;
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 14px 14px 16px;
+      }
+      h1 {
+        font-size: 1.45rem;
+      }
+      .actions {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Generador de Banners <span>Jesús Díaz Automotores</span></h1>
+
+    <div class="card">
+      <div class="card-title">Datos del vehículo</div>
+      <div class="form-grid">
+        <label>
+          Marca
+          <input id="brand" type="text" placeholder="Peugeot" value="Peugeot" />
+        </label>
+        <label>
+          Modelo
+          <input id="model" type="text" placeholder="Partner" />
+        </label>
+        <label>
+          Año
+          <input id="year" type="number" placeholder="2015" />
+        </label>
+        <label>
+          Versión
+          <input id="version" type="text" placeholder="Patagónica" />
+        </label>
+        <label>
+          Motor
+          <input id="engine" type="text" placeholder="1.6 HDI" />
+        </label>
+        <label>
+          Kilometraje
+          <input id="km" type="number" placeholder="180000" />
+        </label>
+      </div>
+      <p class="hint">
+        El texto inferior se construye automáticamente como:
+        <strong>MODELO/AÑO/VERSIÓN/MOTOR/KM</strong> (en mayúsculas y con “KM” al final).
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Fotos del vehículo</div>
+      <div class="file-input-wrapper">
+        <label>
+          <span>Seleccionar imágenes</span>
+          <input id="images" type="file" accept="image/*" multiple />
+        </label>
+        <p class="hint">Podés seleccionar varias a la vez (por ejemplo, 15 fotos del auto).</p>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn" class="btn-primary">
+          <span>⚙️ Generar banners</span>
+        </button>
+        <div class="status" id="statusText">
+          Listo para generar. Subí las fotos y completá los datos del auto.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span class="badge"><span class="badge-dot"></span> Banners generados</span>
+      </div>
+      <div id="previews" class="previews"></div>
+      <div class="actions" style="margin-top: 14px;">
+        <button id="downloadZipBtn" class="btn-secondary" disabled>
+          ⬇️ Descargar todos en ZIP
+        </button>
+        <div class="hint">Después de generar los banners, podés descargar todas las imágenes en un archivo ZIP.</div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      Todo el procesamiento se hace en tu navegador. Nada se sube a ningún servidor.
+    </div>
+  </div>
+
+  <script>
+    const imagesInput = document.getElementById("images");
+    const generateBtn = document.getElementById("generateBtn");
+    const downloadZipBtn = document.getElementById("downloadZipBtn");
+    const previewsContainer = document.getElementById("previews");
+    const statusText = document.getElementById("statusText");
+
+    let lastZipBlob = null;
+
+    function getVehicleText() {
+      const brand = (document.getElementById("brand").value || "").trim();
+      const model = (document.getElementById("model").value || "").trim();
+      const year = (document.getElementById("year").value || "").trim();
+      const version = (document.getElementById("version").value || "").trim();
+      const engine = (document.getElementById("engine").value || "").trim();
+      const km = (document.getElementById("km").value || "").trim();
+
+      const parts = [];
+
+      if (model) parts.push(model.toUpperCase());
+      if (year) parts.push(year);
+      if (version) parts.push(version.toUpperCase());
+      if (engine) parts.push(engine.toUpperCase());
+
+      if (km) {
+        const formattedKm = Number(km).toLocaleString("es-AR");
+        parts.push(`${formattedKm}KM`);
+      }
+
+      if (parts.length === 0 && brand) {
+        parts.push(brand.toUpperCase());
+      }
+
+      return parts.join("/");
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    function getFileBaseName(file) {
+      const name = file.name || "imagen";
+      const dotIndex = name.lastIndexOf(".");
+      if (dotIndex === -1) return name;
+      return name.substring(0, dotIndex);
+    }
+
+    // --- FUNCIÓN AJUSTADA ---
+    async function createBannerFromImage(img, text) {
+      const width = 1200;
+      const height = 900;
+      const headerHeight = 210;
+      const footerHeight = 140;
+      const magenta = "#ff008c";
+      const black = "#000000";
+      const magentaLine = 4; // líneas más finas
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+
+      // Fondo general
+      ctx.fillStyle = "#111114";
+      ctx.fillRect(0, 0, width, height);
+
+      // Header negro
+      ctx.fillStyle = black;
+      ctx.fillRect(0, 0, width, headerHeight);
+
+      // Línea magenta debajo del header (fina)
+      ctx.fillStyle = magenta;
+      ctx.fillRect(0, headerHeight - magentaLine, width, magentaLine);
+
+      // Texto "Jesús DIAZ" centrado
+      ctx.fillStyle = "#ffffff";
+      ctx.textBaseline = "alphabetic";
+      ctx.textAlign = "left";
+
+      ctx.font = "bold 64px 'Segoe UI', system-ui, sans-serif";
+      const line1 = "Jesús DIAZ";
+      const line1Width = ctx.measureText(line1).width;
+      const xLine1 = (width - line1Width) / 2;
+      const yLine1 = 95;
+      ctx.fillText(line1, xLine1, yLine1);
+
+      // Subrayado magenta centrado bajo "Jesús DIAZ"
+      const underlineWidth = line1Width;
+      ctx.fillStyle = magenta;
+      ctx.fillRect(xLine1, yLine1 + 18, underlineWidth, 5);
+
+      // Texto "AUTOMOTORES" centrado
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "500 32px 'Segoe UI', system-ui, sans-serif";
+      const line2 = "AUTOMOTORES";
+      const line2Width = ctx.measureText(line2).width;
+      const xLine2 = (width - line2Width) / 2;
+      const yLine2 = yLine1 + 70;
+      ctx.fillText(line2, xLine2, yLine2);
+
+      // Footer negro
+      const footerY = height - footerHeight;
+      ctx.fillStyle = black;
+      ctx.fillRect(0, footerY, width, footerHeight);
+
+      // Línea magenta fina encima del footer
+      ctx.fillStyle = magenta;
+      ctx.fillRect(0, footerY, width, magentaLine);
+
+      // Área de la foto: 100% entre las líneas magenta
+      const contentTop = headerHeight;
+      const contentBottom = footerY;
+      const contentHeight = contentBottom - contentTop;
+      const contentWidth = width;
+      const contentX = 0;
+      const contentY = contentTop;
+
+      // Escalar foto manteniendo proporción, ocupando TODO el ancho/alto posible
+      const imgRatio = img.width / img.height;
+      const areaRatio = contentWidth / contentHeight;
+      let drawWidth, drawHeight;
+
+      if (imgRatio > areaRatio) {
+        // Imagen más "apaisada": llena ancho, recorta arriba/abajo
+        drawWidth = contentWidth;
+        drawHeight = contentWidth / imgRatio;
+      } else {
+        // Imagen más alta: llena alto, recorta laterales
+        drawHeight = contentHeight;
+        drawWidth = contentHeight * imgRatio;
+      }
+
+      const drawX = contentX + (contentWidth - drawWidth) / 2;
+      const drawY = contentY + (contentHeight - drawHeight) / 2;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(contentX, contentY, contentWidth, contentHeight);
+      ctx.clip();
+      ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+      ctx.restore();
+
+      // Texto inferior (vehículo)
+      let footerText = text || "";
+      footerText = footerText.trim();
+      if (!footerText) footerText = "VEHÍCULO";
+
+      // Ajustar tamaño de fuente según ancho
+      let fontSize = 42;
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffffff";
+      let padding = 40;
+      ctx.font = `bold ${fontSize}px 'Segoe UI', system-ui, sans-serif`;
+
+      while (ctx.measureText(footerText).width > width - padding * 2 && fontSize > 20) {
+        fontSize -= 2;
+        ctx.font = `bold ${fontSize}px 'Segoe UI', system-ui, sans-serif`;
+      }
+
+      const textX = width / 2;
+      const textY = footerY + footerHeight / 2 + 6;
+      ctx.textAlign = "center";
+      ctx.fillText(footerText, textX, textY);
+
+      // Devolver blob JPEG
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", 0.9)
+      );
+      const dataURL = canvas.toDataURL("image/jpeg", 0.9);
+
+      return { blob, dataURL };
+    }
+    // --- FIN FUNCIÓN AJUSTADA ---
+
+    async function generateBanners() {
+      const files = Array.from(imagesInput.files || []);
+      if (!files.length) {
+        alert("Seleccioná al menos una imagen.");
+        return;
+      }
+
+      const vehicleText = getVehicleText();
+
+      generateBtn.disabled = true;
+      downloadZipBtn.disabled = true;
+      previewsContainer.innerHTML = "";
+      statusText.innerHTML = "Procesando imágenes… Esto puede tardar unos segundos.";
+
+      const zip = new JSZip();
+      let processed = 0;
+
+      for (const file of files) {
+        try {
+          statusText.innerHTML = `Procesando ${processed + 1} de ${files.length}…`;
+          const dataURL = await readFileAsDataURL(file);
+          const img = await loadImage(dataURL);
+          const { blob, dataURL: previewDataURL } = await createBannerFromImage(
+            img,
+            vehicleText
+          );
+
+          const baseName = getFileBaseName(file);
+          const outputName = `${baseName || "auto"}-banner.jpg`;
+
+          zip.file(outputName, blob);
+
+          // Preview
+          const item = document.createElement("div");
+          item.className = "preview-item";
+          const imgPreview = document.createElement("img");
+          imgPreview.src = previewDataURL;
+          const nameLabel = document.createElement("div");
+          nameLabel.className = "preview-name";
+          nameLabel.textContent = outputName;
+          item.appendChild(imgPreview);
+          item.appendChild(nameLabel);
+          previewsContainer.appendChild(item);
+
+          processed++;
+        } catch (err) {
+          console.error("Error procesando archivo:", file.name, err);
+        }
+      }
+
+      if (!processed) {
+        statusText.innerHTML = "No se pudo generar ningún banner. Revisá las imágenes.";
+        generateBtn.disabled = false;
+        return;
+      }
+
+      statusText.innerHTML = `Listo: se generaron ${processed} banner(s). Creando archivo ZIP…`;
+
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      lastZipBlob = zipBlob;
+
+      downloadZipBtn.disabled = false;
+      statusText.innerHTML = `✅ Banners generados: ${processed}. Ahora podés descargar el ZIP.`;
+      generateBtn.disabled = false;
+    }
+
+    function downloadZip() {
+      if (!lastZipBlob) return;
+      const url = URL.createObjectURL(lastZipBlob);
+      const model = (document.getElementById("model").value || "banners").trim();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `banners-${model || "vehiculo"}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    generateBtn.addEventListener("click", () => {
+      generateBanners().catch((err) => {
+        console.error(err);
+        statusText.innerHTML = "Ocurrió un error al generar los banners.";
+        generateBtn.disabled = false;
+      });
+    });
+
+    downloadZipBtn.addEventListener("click", downloadZip);
+  </script>
+</body>
+</html>
